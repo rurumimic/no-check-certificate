@@ -14,15 +14,16 @@ SELF SIGNED 인증서 설정 방법
   - package: [ca-certificates](https://packages.ubuntu.com/focal/ca-certificates)
     - [change logs](https://launchpad.net/ubuntu/+source/ca-certificates/+changelog)
 
-```bash
-sudo apt update
-sudo apt install -y ca-certificates
-```
 
 ```bash
 sudo mkdir /usr/share/ca-certificates/self-signed
 sudo cp /share/*.crt /usr/share/ca-certificates/self-signed
-sudo update-ca-certificates -v
+# sudo update-ca-certificates -v
+```
+
+```bash
+sudo apt update
+sudo apt install -y ca-certificates
 ```
 
 ---
