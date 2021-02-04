@@ -1,0 +1,11 @@
+# Do not commit your key
+
+*.crt
+*.pem
+*.der
+*.key
+*.cer
+*.pfx
+*.p12
+*.csr
+*.jks
