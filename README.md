@@ -7,24 +7,78 @@ SELF SIGNED 인증서 설정 방법
 - [ ] wget
 - [ ] ...
 
-## HOW TO
+## How to
 
-- ubuntu focal 20.04
-  - man: [update-ca-certificates](http://manpages.ubuntu.com/manpages/focal/man8/update-ca-certificates.8.html) - update `/etc/ssl/certs` and ca-certificates.crt
-  - package: [ca-certificates](https://packages.ubuntu.com/focal/ca-certificates)
-    - [change logs](https://launchpad.net/ubuntu/+source/ca-certificates/+changelog)
+### .gitignore
 
+1. Create a directory named `certs`.
+1. Add [.gitignore](ubuntu/focal64/certs/.gitignore).
 
-```bash
-sudo mkdir /usr/share/ca-certificates/self-signed
-sudo cp /share/*.crt /usr/share/ca-certificates/self-signed
-# sudo update-ca-certificates -v
+### Import your certificates files
+
+Save your certificates files in `certs`.
+
+### Vagrantfile shell provision
+
+Add lines to `Vagrantfile`:
+
+- `path`
+  - file: `update-certs.sh`
+  - url: `https://raw.githubusercontent.com/rurumimic/no-check-certificate/main/ubuntu/focal64/update-certs.sh`
+- (option) `args`
+  1. `synced_folder`: `/certs` in guest is default.
+  1. certs directory's name: `my-certs` is default → Certs will save in `/usr/local/share/ca-certificates/my-certs`.
+
+```ruby
+config.vm.synced_folder "./certs", "/certs"
+config.vm.provision "shell" do |s|
+  s.path = "update-certs.sh" 
+  # or
+  # s.path = "https://raw.githubusercontent.com/rurumimic/no-check-certificate/main/ubuntu/focal64/update-certs.sh"
+  # s.args = ["/certs", "my-certs"]
+end
 ```
 
+### Vagrant up
+
 ```bash
-sudo apt update
-sudo apt install -y ca-certificates
+vagrant up
 ```
+
+---
+
+## Manual
+
+### .gitignore
+
+1. Create a directory named `certs`.
+1. Add [.gitignore](ubuntu/focal64/certs/.gitignore).
+
+### Update CA certificates
+
+```bash
+sudo mkdir /usr/local/share/ca-certificates/my-certs
+sudo cp /share/*.crt /usr/local/share/ca-certificates/my-certs
+sudo update-ca-certificates -v
+```
+
+### Verify
+
+```bash
+diff --unchanged-group-format='@@ %dn,%df 
+  %<' --old-group-format='' --new-group-format='' --changed-group-format='' \
+  /etc/ssl/certs/ca-certificates.crt /certs/<your-certs>.crt
+```
+
+---
+
+## Linux
+
+### Ubuntu Focal 20.04
+
+- man: [update-ca-certificates](http://manpages.ubuntu.com/manpages/focal/man8/update-ca-certificates.8.html) - update `/etc/ssl/certs` and ca-certificates.crt
+- package: [ca-certificates](https://packages.ubuntu.com/focal/ca-certificates)
+  - [change logs](https://launchpad.net/ubuntu/+source/ca-certificates/+changelog)
 
 ---
 
