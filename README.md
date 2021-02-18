@@ -32,9 +32,8 @@ Add lines to `Vagrantfile`:
 ```ruby
 config.vm.synced_folder "./certs", "/certs"
 config.vm.provision "shell" do |s|
-  s.path = "update-certs.sh" 
-  # or
-  # s.path = "https://raw.githubusercontent.com/rurumimic/no-check-certificate/main/ubuntu/focal64/update-certs.sh"
+  s.path = "https://raw.githubusercontent.com/rurumimic/no-check-certificate/main/ubuntu/focal64/update-certs.sh"
+  # s.path = "update-certs.sh" 
   # s.args = ["/certs", "my-certs"]
 end
 ```
