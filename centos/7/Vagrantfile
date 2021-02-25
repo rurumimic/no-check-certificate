@@ -1,0 +1,15 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "centos/7"
+
+  # Update CA certificates
+  config.vm.provision "shell" do |s|
+    s.path = "https://raw.githubusercontent.com/rurumimic/no-check-certificate/main/centos/7/update-certs.sh"
+    # or
+    # s.path = "update-certs.sh" 
+    # s.args = ["/vagrant/certs"]
+  end
+
+end

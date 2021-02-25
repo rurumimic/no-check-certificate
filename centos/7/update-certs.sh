@@ -1,7 +1,6 @@
 #!/bin/bash
 
 SOURCE_DIR=${1:-"/vagrant/certs"}
-CERT_DIR=${2:-"my-certs"}
 
 if [ ! -d ${SOURCE_DIR} ]
 then
@@ -9,14 +8,7 @@ then
   exit 1
 fi
 
-CERTS_PATH=/usr/local/share/ca-certificates/${CERT_DIR}
-if [ ! -d ${CERTS_PATH} ]; then
-  mkdir $CERTS_PATH
-  if [ $? -ne 0 ]; then
-    echo "[ERROR] Can't make a directory: \"${CERTS_PATH}\"" >> /dev/stderr
-    exit 1
-  fi
-fi
+CERTS_PATH=/usr/share/pki/ca-trust-source/anchors
 
 echo "Update \"Self-signed\" certificates!"
 echo "Finding \".crt\" files in \"${SOURCE_DIR}\""
@@ -28,4 +20,4 @@ for FILE in ${CERTS[@]}; do
   cp ${FILE} ${CERTS_PATH}
 done
 
-update-ca-certificates
+update-ca-trust

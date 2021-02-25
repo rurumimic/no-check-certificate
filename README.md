@@ -2,8 +2,8 @@
 
 SELF SIGNED 인증서 설정 방법
 
-- [ ] ubuntu
-- [ ] centos
+- [x] ubuntu
+- [x] centos
 - [ ] wget
 - [ ] ...
 
@@ -22,19 +22,36 @@ Save your certificates files in `certs`.
 
 Add lines to `Vagrantfile`:
 
+#### Ubuntu
+
 - `path`
   - file: `update-certs.sh`
   - url: `https://raw.githubusercontent.com/rurumimic/no-check-certificate/main/ubuntu/focal64/update-certs.sh`
-- (option) `args`
-  1. `synced_folder`: `/certs` in guest is default.
+- 2 options: `args`
+  1. `synced_folder`: `/vagrant/certs` in guest is default.
   1. certs directory's name: `my-certs` is default → Certs will save in `/usr/local/share/ca-certificates/my-certs`.
 
 ```ruby
-config.vm.synced_folder "./certs", "/certs"
 config.vm.provision "shell" do |s|
   s.path = "https://raw.githubusercontent.com/rurumimic/no-check-certificate/main/ubuntu/focal64/update-certs.sh"
   # s.path = "update-certs.sh" 
-  # s.args = ["/certs", "my-certs"]
+  # s.args = ["/vagrant/certs", "my-certs"]
+end
+```
+
+#### CentOS
+
+- `path`
+  - file: `update-certs.sh`
+  - url: `https://raw.githubusercontent.com/rurumimic/no-check-certificate/main/centos/7/update-certs.sh`
+- 1 option: `args`
+  1. `synced_folder`: `/vagrant/certs` in guest is default.
+
+```ruby
+config.vm.provision "shell" do |s|
+  s.path = "https://raw.githubusercontent.com/rurumimic/no-check-certificate/main/centos/7/update-certs.sh"
+  # s.path = "update-certs.sh" 
+  # s.args = ["/vagrant/certs"]
 end
 ```
 
@@ -53,20 +70,33 @@ vagrant up
 1. Create a directory named `certs`.
 1. Add [.gitignore](ubuntu/focal64/certs/.gitignore).
 
-### Update CA certificates
+### Ubuntu: Update CA certificates
 
 ```bash
 sudo mkdir /usr/local/share/ca-certificates/my-certs
-sudo cp /share/*.crt /usr/local/share/ca-certificates/my-certs
+sudo cp /vagrant/certs/*.crt /usr/local/share/ca-certificates/my-certs
 sudo update-ca-certificates -v
 ```
 
-### Verify
+#### Ubuntu: Verify
 
 ```bash
 diff --unchanged-group-format='@@ %dn,%df 
   %<' --old-group-format='' --new-group-format='' --changed-group-format='' \
   /etc/ssl/certs/ca-certificates.crt /certs/<your-certs>.crt
+```
+
+### CentOS: Update CA certificates
+
+```bash
+sudo cp /vagrant/certs/*.crt /usr/share/pki/ca-trust-source/anchors
+sudo update-ca-trust
+```
+
+#### CentOS: Verify
+
+```bash
+trust list
 ```
 
 ---
@@ -78,6 +108,15 @@ diff --unchanged-group-format='@@ %dn,%df
 - man: [update-ca-certificates](http://manpages.ubuntu.com/manpages/focal/man8/update-ca-certificates.8.html) - update `/etc/ssl/certs` and ca-certificates.crt
 - package: [ca-certificates](https://packages.ubuntu.com/focal/ca-certificates)
   - [change logs](https://launchpad.net/ubuntu/+source/ca-certificates/+changelog)
+
+### CentOS 7
+
+- RedHat: [Using Shared System Certificates](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/security_guide/sec-shared-system-certificates)
+- `/etc/pki/ca-trust/`
+  - `/etc/pki/ca-trust/source/anchors/`
+- `/usr/share/pki/ca-trust-source/`
+  - `/usr/share/pki/ca-trust-source/anchors/`
+- Run: `update-ca-trust`
 
 ---
 
