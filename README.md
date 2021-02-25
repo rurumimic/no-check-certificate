@@ -7,6 +7,8 @@ SELF SIGNED 인증서 설정 방법
 - [ ] wget
 - [ ] ...
 
+---
+
 ## How to
 
 ### .gitignore
@@ -117,6 +119,60 @@ trust list
 - `/usr/share/pki/ca-trust-source/`
   - `/usr/share/pki/ca-trust-source/anchors/`
 - Run: `update-ca-trust`
+
+---
+
+## Test
+
+### Ubuntu
+
+### CentOS
+
+```bash
+# Root
+sudo su
+
+# Add a Repo
+cat << EOF > /etc/yum.repos.d/nginx.repo
+[nginx]
+name=Nginx Repository \$basearch - Archive
+baseurl=http://nginx.org/packages/centos/\$releasever/\$basearch/
+enabled=1
+gpgcheck=1
+gpgkey=https://nginx.org/keys/nginx_signing.key
+EOF
+
+yum install -y nginx # Install Nginx
+```
+
+#### Fail
+
+```bash
+Is this ok [y/d/N]: y
+
+Downloading packages:
+warning: /var/cache/yum/x86_64/7/nginx/packages/nginx-1.18.0-2.el7.ngx.x86_64.rpm: Header V4 RSA/SHA1 Signature, key ID 7bd9bf62: NOKEY
+Public key for nginx-1.18.0-2.el7.ngx.x86_64.rpm is not installed
+nginx-1.18.0-2.el7.ngx.x86_64.rpm                                                                     | 769 kB  00:00:02     
+Retrieving key from https://nginx.org/keys/nginx_signing.key
+
+GPG key retrieval failed: [Errno 14] curl#60 - "Peer's certificate issuer has been marked as not trusted by the user."
+```
+
+#### Success
+
+```bash
+nginx # Start Nginx
+
+curl localhost # Test
+```
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Welcome to nginx!</title>
+```
 
 ---
 
