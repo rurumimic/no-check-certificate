@@ -1,20 +1,32 @@
 # no-check-certificate
 
-SELF SIGNED 인증서 설정 방법
+How to trust **SELF SIGNED certificates**
 
-- [x] ubuntu
-- [x] centos
-- [ ] wget
-- [ ] ...
+- [Usage](#usage)
+  - [Append `.gitignore`](#gitignore)
+  - [Import your certificates files](#import-your-certificates-files)
+  - [Vagrantfile shell provision](#vagrantfile-shell-provision)
+    - Ubuntu 20.04 Focal
+    - CentOS 7
+  - [Vagrant up](#vagrant-up)
+- [Test](#test)
+  - curl
+  - snap
+- [Manual](#manual)
+  - Ubuntu 20.04 Focal
+  - CentOS 7
+- Other
+  - [Linux Documentations Link](doc.md)
+  - [File format](fileformat.md)
 
 ---
 
-## How to
+## Usage
 
-### .gitignore
+### Append gitignore
 
 1. Create a directory named `certs`.
-1. Add [.gitignore](ubuntu/focal64/certs/.gitignore).
+1. Append: [.gitignore](ubuntu/focal64/certs/.gitignore)
 
 ### Import your certificates files
 
@@ -24,7 +36,7 @@ Save your certificates files in `certs`.
 
 Add lines to `Vagrantfile`:
 
-#### Ubuntu
+#### Ubuntu 20.04
 
 - `path`
   - file: `update-certs.sh`
@@ -41,7 +53,7 @@ config.vm.provision "shell" do |s|
 end
 ```
 
-#### CentOS
+#### CentOS 7
 
 - `path`
   - file: `update-certs.sh`
@@ -65,147 +77,103 @@ vagrant up
 
 ---
 
+## Test
+
+### CURL
+
+```bash
+curl -I https://example.com
+
+HTTP/1.1 200 OK
+```
+
+### Ubuntu Snap
+
+```bash
+sudo snap install hello-world
+hello-world
+
+Hello World!
+```
+
+---
+
 ## Manual
 
-### .gitignore
+Location of your `.crt` files:
 
-1. Create a directory named `certs`.
-1. Add [.gitignore](ubuntu/focal64/certs/.gitignore).
+```bash
+SOURCE_DIR=/path/to/dir
+# In this project:
+# SOURCE_DIR=/vagrant/certs
+```
 
-### Ubuntu: Update CA certificates
+### Ubuntu 20.04
+
+Update CA certificates:
 
 ```bash
 sudo mkdir /usr/local/share/ca-certificates/my-certs
-sudo cp /vagrant/certs/*.crt /usr/local/share/ca-certificates/my-certs
-sudo update-ca-certificates -v
+sudo cp ${SOURCE_DIR}/*.crt /usr/local/share/ca-certificates/my-certs
+sudo update-ca-certificates
 ```
 
-#### Ubuntu: Verify
+Output:
+
+```bash
+Updating certificates in /etc/ssl/certs...
+1 added, 0 removed; done.
+Running hooks in /etc/ca-certificates/update.d...
+done.
+```
+
+Verify:
 
 ```bash
 diff --unchanged-group-format='@@ %dn,%df 
   %<' --old-group-format='' --new-group-format='' --changed-group-format='' \
-  /etc/ssl/certs/ca-certificates.crt /certs/<your-certs>.crt
+  /etc/ssl/certs/ca-certificates.crt ${SOURCE_DIR}/*.crt
 ```
 
-### CentOS: Update CA certificates
+Output:
 
 ```bash
-sudo cp /vagrant/certs/*.crt /usr/share/pki/ca-trust-source/anchors
-sudo update-ca-trust
+@@ 21,3503 
+-----BEGIN CERTIFICATE-----
+# ...
+-----END CERTIFICATE-----
 ```
 
-#### CentOS: Verify
+#### Snap
+
+Store certificates in Snapd’s trusted certificates pool:
 
 ```bash
-trust list
+sudo snap set system store-certs.cert0="$(sed -e 's/\r//g' ${SOURCE_DIR}/YOUR_CERT_1.crt)"
+sudo snap set system store-certs.cert1="$(sed -e 's/\r//g' ${SOURCE_DIR}/YOUR_CERT_2.crt)"
 ```
-
----
-
-## Linux
-
-### Ubuntu Focal 20.04
-
-- man: [update-ca-certificates](http://manpages.ubuntu.com/manpages/focal/man8/update-ca-certificates.8.html) - update `/etc/ssl/certs` and ca-certificates.crt
-- package: [ca-certificates](https://packages.ubuntu.com/focal/ca-certificates)
-  - [change logs](https://launchpad.net/ubuntu/+source/ca-certificates/+changelog)
 
 ### CentOS 7
 
-- RedHat: [Using Shared System Certificates](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/security_guide/sec-shared-system-certificates)
-- `/etc/pki/ca-trust/`
-  - `/etc/pki/ca-trust/source/anchors/`
-- `/usr/share/pki/ca-trust-source/`
-  - `/usr/share/pki/ca-trust-source/anchors/`
-- Run: `update-ca-trust`
-
----
-
-## Test
-
-### Ubuntu
-
-### CentOS
+Update CA certificates:
 
 ```bash
-# Root
-sudo su
-
-# Add a Repo
-cat << EOF > /etc/yum.repos.d/nginx.repo
-[nginx]
-name=Nginx Repository \$basearch - Archive
-baseurl=http://nginx.org/packages/centos/\$releasever/\$basearch/
-enabled=1
-gpgcheck=1
-gpgkey=https://nginx.org/keys/nginx_signing.key
-EOF
-
-yum install -y nginx # Install Nginx
+sudo cp ${SOURCE_DIR}/*.crt /usr/share/pki/ca-trust-source/anchors
+sudo update-ca-trust
 ```
 
-#### Fail
+Verify:
 
 ```bash
-Is this ok [y/d/N]: y
-
-Downloading packages:
-warning: /var/cache/yum/x86_64/7/nginx/packages/nginx-1.18.0-2.el7.ngx.x86_64.rpm: Header V4 RSA/SHA1 Signature, key ID 7bd9bf62: NOKEY
-Public key for nginx-1.18.0-2.el7.ngx.x86_64.rpm is not installed
-nginx-1.18.0-2.el7.ngx.x86_64.rpm                                                                     | 769 kB  00:00:02     
-Retrieving key from https://nginx.org/keys/nginx_signing.key
-
-GPG key retrieval failed: [Errno 14] curl#60 - "Peer's certificate issuer has been marked as not trusted by the user."
+trust list | tail -7
 ```
 
-#### Success
+Output:
 
 ```bash
-nginx # Start Nginx
-
-curl localhost # Test
+pkcs11:id=%aa%94%60%f8%11%e1%bb;type=cert
+    type: certificate
+    label: COMPANY
+    trust: anchor
+    category: authority
 ```
-
-```html
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Welcome to nginx!</title>
-```
-
----
-
-## 인증서 파일 포맷 종류
-
-- [ ] ASN.1
-- [ ] BER
-- [ ] CER
-- [ ] DER
-- [ ] PEM
-- [ ] CRT
-- [ ] KEY
-- [ ] PFX
-- [ ] P12
-- [ ] CSR
-- [ ] JKS
-
-### X.690
-
-- Wiki: [X.690](https://en.wikipedia.org/wiki/X.690)
-
-국제전기통신연합 전기통신표준화부문 [ITU-T](https://en.wikipedia.org/wiki/ITU-T)에서 만들었다. X.509, Y.3172, H.264/MPEG-4 AVC 등등.
-
-#### [ASN.1](https://en.wikipedia.org/wiki/ASN.1) 인코딩 포맷
-
-Abstract Syntax Notation One: 추상 구문 표기법 1
-
-#### 종류
-
-- Basic Encoding Rules (BER)
-- Canonical Encoding Rules (CER)
-- Distinguished Encoding Rules (DER)
-
-### BER: Basic Encoding Rules
-
-### PEM: Privacy Enhanced Mail

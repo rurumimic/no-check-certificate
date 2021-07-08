@@ -5,8 +5,9 @@ CERT_DIR=${2:-"my-certs"}
 
 if [ ! -d ${SOURCE_DIR} ]
 then
-  echo "[ERROR] No directory: \"${SOURCE_DIR}\"" >> /dev/stderr
-  exit 1
+  echo "[INFO] No directory: \"${SOURCE_DIR}\""
+  echo "[SKIP] Add self-signed certificates"
+  exit 0
 fi
 
 CERTS_PATH=/usr/local/share/ca-certificates/${CERT_DIR}
@@ -18,10 +19,10 @@ if [ ! -d ${CERTS_PATH} ]; then
   fi
 fi
 
-echo "Update \"Self-signed\" certificates!"
+echo "Update CA Certificate List"
 echo "Finding \".crt\" files in \"${SOURCE_DIR}\""
 
-CERTS=`find ${SOURCE_DIR} -name '*.crt' -type f -print0 | xargs -0`
+CERTS=(`find ${SOURCE_DIR} -name '*.crt' -type f -print0 | xargs -0`)
 
 for FILE in ${CERTS[@]}; do
   echo "${FILE} => ${CERTS_PATH}"
@@ -29,3 +30,12 @@ for FILE in ${CERTS[@]}; do
 done
 
 update-ca-certificates
+
+if command -v snap &> /dev/null
+then
+  echo "Update Snapd’s trusted certificates pool"
+  for INDEX in ${!CERTS[@]}; do
+    echo "Store ${CERTS[INDEX]} to snapd as \"cert${INDEX}\""
+    snap set system store-certs.cert${INDEX}="$(sed -e 's/\r//g' ${CERTS[INDEX]})"
+  done
+fi
