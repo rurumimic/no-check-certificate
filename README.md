@@ -2,18 +2,14 @@
 
 How to trust **SELF SIGNED certificates**
 
-- [Usage](#usage)
-  - [Append `.gitignore`](#gitignore)
-  - [Import your certificates files](#import-your-certificates-files)
-  - [Vagrantfile shell provision](#vagrantfile-shell-provision)
-    - Ubuntu 20.04 Focal
-    - CentOS 7
-  - [Vagrant up](#vagrant-up)
+- [Before You Begin](#before-you-begin)
+- [Usage](#usage): Ubuntu, CentOS
+- [Configurations](#configurations): Change a directory
 - [Test](#test)
   - curl
   - snap
 - [Manual](#manual)
-  - Ubuntu 20.04 Focal
+  - Ubuntu 20.04
   - CentOS 7
 - Other
   - [Linux Documentations Link](doc.md)
@@ -21,58 +17,75 @@ How to trust **SELF SIGNED certificates**
 
 ---
 
-## Usage
-
-### Append gitignore
+## Before You Begin
 
 1. Create a directory named `certs`.
 1. Append: [.gitignore](ubuntu/focal64/certs/.gitignore)
+1. Save your certificates files in `certs`.
 
-### Import your certificates files
+---
 
-Save your certificates files in `certs`.
+## Usage
 
-### Vagrantfile shell provision
+1. Add lines to `Vagrantfile`
+1. Run vagrant: `vagrant up`
 
-Add lines to `Vagrantfile`:
-
-#### Ubuntu 20.04
-
-- `path`
-  - file: `update-certs.sh`
-  - url: `https://raw.githubusercontent.com/rurumimic/no-check-certificate/main/ubuntu/focal64/update-certs.sh`
-- 2 options: `args`
-  1. `synced_folder`: `/vagrant/certs` in guest is default.
-  1. certs directory's name: `my-certs` is default → Certs will save in `/usr/local/share/ca-certificates/my-certs`.
+### Ubuntu 20.04
 
 ```ruby
 config.vm.provision "shell" do |s|
   s.path = "https://raw.githubusercontent.com/rurumimic/no-check-certificate/main/ubuntu/focal64/update-certs.sh"
-  # s.path = "update-certs.sh" 
-  # s.args = ["/vagrant/certs", "my-certs"]
 end
 ```
 
-#### CentOS 7
-
-- `path`
-  - file: `update-certs.sh`
-  - url: `https://raw.githubusercontent.com/rurumimic/no-check-certificate/main/centos/7/update-certs.sh`
-- 1 option: `args`
-  1. `synced_folder`: `/vagrant/certs` in guest is default.
+### CentOS 7
 
 ```ruby
 config.vm.provision "shell" do |s|
   s.path = "https://raw.githubusercontent.com/rurumimic/no-check-certificate/main/centos/7/update-certs.sh"
-  # s.path = "update-certs.sh" 
-  # s.args = ["/vagrant/certs"]
 end
 ```
 
-### Vagrant up
+---
 
-```bash
-vagrant up
+## Configurations
+
+`args`: `/vagrant/certs` in guest is default.
+
+### Ubuntu 20.04
+
+```ruby
+config.vm.provision "shell" do |s|
+  s.path = "https://raw.githubusercontent.com/rurumimic/no-check-certificate/main/ubuntu/focal64/update-certs.sh"
+  s.args = ["/custom/cert/path"]
+end
+
+config.vm.provision "shell" do |s|
+  s.path = "update-certs.sh"
+end
+
+config.vm.provision "shell" do |s|
+  s.path = "update-certs.sh"
+  s.args = ["/custom/cert/path"]
+end
+```
+
+### CentOS 7
+
+```ruby
+config.vm.provision "shell" do |s|
+  s.path = "https://raw.githubusercontent.com/rurumimic/no-check-certificate/main/centos/7/update-certs.sh"
+  s.args = ["/custom/cert/path"]
+end
+
+config.vm.provision "shell" do |s|
+  s.path = "update-certs.sh"
+end
+
+config.vm.provision "shell" do |s|
+  s.path = "update-certs.sh"
+  s.args = ["/custom/cert/path"]
+end
 ```
 
 ---

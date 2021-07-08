@@ -7,9 +7,6 @@ Vagrant.configure("2") do |config|
   # Update CA certificates
   config.vm.provision "shell" do |s|
     s.path = "https://raw.githubusercontent.com/rurumimic/no-check-certificate/main/ubuntu/focal64/update-certs.sh"
-    # or
-    # s.path = "update-certs.sh" 
-    # s.args = ["/vagrant/certs", "my-certs"]
   end
 
 end
