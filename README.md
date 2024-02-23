@@ -12,8 +12,8 @@ How to trust **SELF SIGNED certificates**
   - Ubuntu 20.04
   - CentOS 7
 - Other
-  - [Linux Documentations Link](doc.md)
-  - [File format](fileformat.md)
+  - [Linux Documentations Link](docs/README.md)
+  - [File format](docs/fileformat.md)
 
 ---
 
@@ -190,3 +190,4 @@ pkcs11:id=%aa%94%60%f8%11%e1%bb;type=cert
     trust: anchor
     category: authority
 ```
+
